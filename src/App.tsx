@@ -1,12 +1,9 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 
-// V0.4.2a — Venue ↔ Artist invite polish
-// - Explicit from/to on invites (pendingInvite: {fromType,fromId,toType,toId})
-// - WhatsApp message tailored by initiator, correct counterparty phone
-// - Invite landing shows initiator → counterparty + smarter "Switch identity" mapping
-// - Inbox shows who invited whom and quick actions
-// - Sample data fixed to include pendingInvite on Jota-Pê → Studio Azul (awaiting venue)
-// - Keeps: Router, public-place privacy, profile .ics, i18n, initiator highlights
+// V0.4.3 — Basic agenda rendering
+// - Renders agenda with header and day strip
+// - Event modal with calendar, maps and WhatsApp actions
+// - Retains i18n, invite flow and profile export helpers
 
 import { Search, Clock, MapPin, User, ChevronRight, X, Phone, Share2, CalendarPlus, Heart, PlusCircle, Check, Ban, Globe } from "lucide-react";
 
@@ -578,7 +575,30 @@ export default function App() {
     link.click();
   }
 
-  // TODO: Implement full routing and rendering logic
-  return <div>Pipa Artist Hub</div>;
+  // Basic rendering for agenda view
+  return (
+    <div className="min-h-screen flex flex-col">
+      <Header query={search} setQuery={setSearch} locale={locale} setLocale={setLocale} identityKey={identityKey} setIdentityKey={setIdentityKey} />
+      <DateStrip selected={selected} setSelected={setSelected} locale={locale} />
+      <main className="mx-auto max-w-6xl px-4 py-6 grid gap-6 md:grid-cols-2">
+        {events.map(ev => (
+          <EventCard key={ev.id} ev={ev} onMore={setActive} locale={locale} />
+        ))}
+      </main>
+      <Modal open={!!active} onClose={()=>setActive(null)}>
+        {active && (
+          <div className="p-4 space-y-3">
+            <h2 id="dialog-title" className="text-lg font-semibold">{active.title}</h2>
+            <p className="text-sm text-neutral-700">{active.blurb}</p>
+            <div className="flex flex-col gap-2">
+              <a href={mapsUrl(active)} target="_blank" rel="noreferrer" className="inline-flex items-center gap-2 rounded-lg border px-3 py-2 text-sm hover:bg-neutral-50"><MapPin className="h-4 w-4" />{t(locale,'openInMaps')}</a>
+              <a href={icsUrl(active)} className="inline-flex items-center gap-2 rounded-lg border px-3 py-2 text-sm hover:bg-neutral-50"><CalendarPlus className="h-4 w-4" />{t(locale,'addToCalendar')}</a>
+              <a href={waUrl(active)} target="_blank" rel="noreferrer" className="inline-flex items-center gap-2 rounded-lg border px-3 py-2 text-sm hover:bg-neutral-50"><Phone className="h-4 w-4" />{t(locale,'whatsapp')}</a>
+            </div>
+          </div>
+        )}
+      </Modal>
+    </div>
+  );
 }
 
